@@ -26,7 +26,7 @@ import { _URL } from "@/shared/snapshot";
 
 export async function doHandleFetch(
 	handler: ScramjetFetchHandler,
-	request: ScramjetFetchRequest
+  request: ScramjetFetchRequest,
 ): Promise<ScramjetFetchResponse> {
 	const parsed = parseRequest(request, handler);
 
@@ -42,7 +42,7 @@ export async function doHandleFetch(
 	await Tap.dispatch(
 		handler.hooks.fetch.intercept,
 		interceptCtx,
-		interceptProps
+    interceptProps,
 	);
 	if (interceptProps.response) {
 		return interceptProps.response;
@@ -75,7 +75,7 @@ export async function doHandleFetch(
 		parsed.trackedClient?.history.push({
 			url: parsed.url.href,
 			refererPolicy: ScramjetHeaders.fromRawHeaders(response.rawHeaders).get(
-				"referrer-policy"
+        "referrer-policy",
 			),
 		});
 	}
@@ -84,7 +84,7 @@ export async function doHandleFetch(
 		handler,
 		request,
 		parsed,
-		response.rawHeaders
+    response.rawHeaders,
 	);
 
 	if (isRedirect(response)) {
@@ -157,6 +157,13 @@ export async function doHandleFetch(
 		normalizeContentType(parsed, responseHeaders);
 	}
 
+  // Vivari runs cross-origin isolated. Proxied responses must opt into the same policy.
+  if (handler.crossOriginIsolated) {
+    responseHeaders.set("Cross-Origin-Opener-Policy", "same-origin");
+    responseHeaders.set("Cross-Origin-Embedder-Policy", "require-corp");
+    responseHeaders.set("Cross-Origin-Resource-Policy", "cross-origin");
+  }
+
 	const respcontext: typeof handler.hooks.fetch.response.context = {
 		request,
 		parsed,
@@ -179,7 +186,7 @@ export async function doNetworkFetch(
 	handler: ScramjetFetchHandler,
 	request: ScramjetFetchRequest,
 	parsed: ScramjetFetchParsed,
-	newheaders: ScramjetHeaders
+  newheaders: ScramjetHeaders,
 ): Promise<BareResponse> {
 	const init = {
 		body: request.body,
@@ -225,7 +232,7 @@ export async function doNetworkFetch(
 	await Tap.dispatch(
 		handler.hooks.fetch.preresponse,
 		prerespcontext,
-		prerespprops
+    prerespprops,
 	);
 
 	return prerespprops.response;
@@ -238,21 +245,21 @@ function isBlobOrDataUrl(url: _URL): boolean {
 async function handleBlobOrDataUrlFetch(
 	handler: ScramjetFetchHandler,
 	request: ScramjetFetchRequest,
-	parsed: ScramjetFetchParsed
+  parsed: ScramjetFetchParsed,
 ): Promise<ScramjetFetchResponse> {
 	let dataUrl = request.rawUrl.pathname.substring(
-		handler.context.prefix.pathname.length
+    handler.context.prefix.pathname.length,
 	);
 	let response: BareResponse;
 
 	if (dataUrl.startsWith("blob:")) {
 		dataUrl = unrewriteBlob(dataUrl, handler.context, parsed.meta);
 		response = BareResponse.fromNativeResponse(
-			await handler.fetchBlobUrl(dataUrl)
+      await handler.fetchBlobUrl(dataUrl),
 		);
 	} else {
 		response = BareResponse.fromNativeResponse(
-			await handler.fetchDataUrl(dataUrl)
+      await handler.fetchDataUrl(dataUrl),
 		);
 	}
 
@@ -262,7 +269,7 @@ async function handleBlobOrDataUrlFetch(
 			handler,
 			request,
 			parsed,
-			response as BareResponse
+      response as BareResponse,
 		);
 	}
 	const headers = ScramjetHeaders.fromRawHeaders(response.rawHeaders);
@@ -299,7 +306,7 @@ async function handleCookies(
 	handler: ScramjetFetchHandler,
 	request: ScramjetFetchRequest,
 	parsed: ScramjetFetchParsed,
-	rawHeaders: RawHeaders
+  rawHeaders: RawHeaders,
 ) {
 	const cookies = [];
 

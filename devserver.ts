@@ -56,6 +56,11 @@ const server = await createServer({
 	server: {
 		port: Number(DEMO_PORT),
 		strictPort: true,
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+    },
 	},
 });
 
@@ -73,13 +78,13 @@ const lines = [
 	black()(`${highlight("SCRAMJET DEV SERVER")}`),
 	black()(
 		`${accent("demo")} ${connector} ${urlColor(
-			`http://localhost:${DEMO_PORT}/`
-		)}`
+      `http://localhost:${DEMO_PORT}/`,
+    )}`,
 	),
 	black()(
 		`${accent("wisp")} ${connector} ${urlColor(
-			process.env.VITE_WISP_URL ?? ""
-		)}`
+      process.env.VITE_WISP_URL ?? "",
+    )}`,
 	),
 	black()(chalk.dim(`[${branch}] ${commit} scramjet/${version}`)),
 ];
